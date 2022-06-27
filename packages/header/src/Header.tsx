@@ -1,15 +1,16 @@
 import { CoreProvider } from '@ag.ds-next/core';
 import { Header as AgDsHeader } from '@ag.ds-next/header';
+import { LoadingDots } from '@ag.ds-next/loading';
 import { AvatarIcon } from '@ag.ds-next/icon';
 import { MainNav, MainNavButton } from '@ag.ds-next/main-nav';
 import { Logo } from '@ag.ds-next/ag-branding';
+import React, { useState } from 'react';
 
 export type HeaderProps = {
 	authenticated?: boolean;
 	activePath?: string;
 	handleSignIn?: React.MouseEventHandler<HTMLButtonElement>;
 	handleSignOut?: React.MouseEventHandler<HTMLButtonElement>;
-	handleSignOutx?: React.MouseEventHandler<HTMLButtonElement>;
 };
 
 const authenticatedLinks = [
@@ -35,8 +36,21 @@ export const Header = ({
 	authenticated,
 	activePath,
 	handleSignIn,
-	handleSignOutx,
+	handleSignOut,
 }: HeaderProps) => {
+	const [pending, setPending] = useState(false);
+
+	const handleEvent =
+		(handler?: React.MouseEventHandler<HTMLButtonElement>) =>
+		async (e: React.MouseEvent<HTMLButtonElement>) => {
+			setPending(true);
+			await handler?.(e);
+			setPending(false);
+		};
+
+	const buttonContent = (label: string) =>
+		pending ? <LoadingDots size="sm" role="status" /> : label;
+
 	return (
 		<CoreProvider>
 			<AgDsHeader
@@ -53,22 +67,15 @@ export const Header = ({
 				activePath={activePath}
 				rightContent={
 					authenticated ? (
-						<>
-							<MainNavButton
-								onClick={(e) => handleSignOutx?.(e)}
-								label="Sign out"
-								icon={AvatarIcon}
-							/>
-							<MainNavButton
-								onClick={(e) => handleSignOutx?.(e)}
-								label={<>Yeah</>}
-								icon={AvatarIcon}
-							/>
-						</>
+						<MainNavButton
+							onClick={handleEvent(handleSignOut)}
+							label={buttonContent('Sign out')}
+							icon={AvatarIcon}
+						/>
 					) : (
 						<MainNavButton
-							onClick={handleSignIn}
-							label="Sign in"
+							onClick={handleEvent(handleSignIn)}
+							label={buttonContent('Sign in')}
 							icon={AvatarIcon}
 						/>
 					)
